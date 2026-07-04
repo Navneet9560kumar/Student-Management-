@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+alembic
+asyncpg
+pydantic
+pydantic-settings
+python-dotenv
+Werkzeug
+python-multipart
+email-validator
+fastapi-pagination
+image-upload==0.1.0
