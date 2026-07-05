@@ -14,15 +14,13 @@ load_dotenv()
 
 # App ke Base aur Models import karo taaki Alembic ko tables ka pata chale
 from app.db.base import Base
-# Ensure all your models are imported here so metadata is complete
-# import app.models.user
-# import app.models.task
-# import app.models.report
-# import app.models.student
-# import app.models.course
-# import app.models.enrollment
-# import app.models.document
-# import app.models.activity_log
+
+# Saare models import karo!
+from app.models.student import Student
+from app.models.course import Course
+from app.models.enrollment import Enrollment
+from app.models.document import Document
+from app.models.activity_log import ActivityLog
 
 from app.models.student import Student
 # Alembic Config object
