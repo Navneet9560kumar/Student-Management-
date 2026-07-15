@@ -4,19 +4,18 @@ import {
   getAllStudents,
   createStudent,
   updateStudent,
-  deleteStudent,
-  getStudentDocuments,
-  uploadDocument,
-  deleteDocument 
+  deleteStudent 
 } from "../api";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, FileText } from "lucide-react";
 
 export default function Students() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "123456" });
+  const [docType, setDocType] = useState("");
+  const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
   const fetchStudents = async () => {
@@ -37,14 +36,18 @@ export default function Students() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", email: "", phone: "" });
+    setForm({ name: "", email: "", phone: "", password: "123456" });
+    setDocType("");
+    setFile(null);
     setError("");
     setShowModal(true);
   };
 
   const openEdit = (student) => {
     setEditing(student);
-    setForm({ name: student.name, email: student.email, phone: student.phone || "" });
+    setForm({ name: student.name, email: student.email, phone: student.phone || "", password: "" });
+    setDocType("");
+    setFile(null);
     setError("");
     setShowModal(true);
   };
@@ -54,7 +57,19 @@ export default function Students() {
       if (editing) {
         await updateStudent(editing.id, form);
       } else {
-        await createStudent(form);
+        const formData = new FormData();
+        formData.append("name", form.name);
+        formData.append("email", form.email);
+        formData.append("phone", form.phone);
+        formData.append("password", form.password);
+        
+        // Optional Document Upload
+        if (docType && file) {
+          formData.append("doc_type", docType);
+          formData.append("file", file);
+        }
+        
+        await createStudent(formData);
       }
       setShowModal(false);
       fetchStudents();
@@ -175,6 +190,34 @@ export default function Students() {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               />
+              {!editing && (
+                <div className="pt-4 mt-4 border-t border-gray-800">
+                  <div className="flex items-center gap-2 mb-3 text-gray-400">
+                    <FileText size={16} />
+                    <span className="text-sm font-medium">Document (Optional)</span>
+                  </div>
+                  <div className="space-y-3">
+                    <input
+                      type="text"
+                      placeholder="Document Type (e.g., Aadhaar Card, PAN)"
+                      value={docType}
+                      onChange={(e) => setDocType(e.target.value)}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                    />
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,application/pdf"
+                        onChange={(e) => setFile(e.target.files[0])}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer"
+                      />
+                    </div>
+                    {file && (
+                      <p className="text-xs text-gray-500 mt-1">Selected: {file.name}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 mt-5">

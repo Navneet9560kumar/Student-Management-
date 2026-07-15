@@ -7,6 +7,8 @@ from app.models.document import Document
 from app.models.activity_log import ActivityLog
 from app.schemas.document import DocumentResponse
 from sqlalchemy import select
+from app.core.dependencies import require_principal
+from app.models.user import User
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -33,7 +35,8 @@ async def upload_document(
     student_id: int,
     doc_type: str = Form(...),
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+     current_user: User = Depends(require_principal) 
 ):
     try:
         if file.content_type not in ALLOWED_TYPES:
@@ -64,7 +67,10 @@ async def upload_document(
             action_type="UPLOAD",
             description=f"Student uploaded '{doc_type}'",
             student_id=student_id,
-            document_id=document.id
+            document_id=document.id,
+            performed_by_id=current_user.id,        
+            performed_by_name=current_user.name,    
+            performed_by_role=current_user.role
         )
 
         return document

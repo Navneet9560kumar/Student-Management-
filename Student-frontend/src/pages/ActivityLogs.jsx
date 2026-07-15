@@ -13,9 +13,13 @@ export default function ActivityLogs() {
 
   useEffect(() => {
     const fetchMeta = async () => {
-      const [s, c] = await Promise.all([getStudents(), getCourses()]);
-      setStudents(s.data);
-      setCourses(c.data);
+      try {
+        const [s, c] = await Promise.all([getStudents(), getCourses()]);
+        setStudents(s.data);
+        setCourses(c.data);
+      } catch (err) {
+        console.error("Error fetching metadata:", err);
+      }
     };
     fetchMeta();
     fetchLogs("all", "");
@@ -54,6 +58,7 @@ export default function ActivityLogs() {
       case "UPDATE": return "bg-indigo-900 text-indigo-400";
       case "DELETE": return "bg-rose-900 text-rose-400";
       case "UPLOAD": return "bg-amber-900 text-amber-400";
+      case "LOGIN": return "bg-cyan-900 text-cyan-400";
       default: return "bg-gray-800 text-gray-400";
     }
   };
@@ -131,25 +136,71 @@ export default function ActivityLogs() {
                 </p>
               </button>
 
-              {/* Expanded Changes */}
-              {expanded === log.id && log.changes && (
-                <div className="px-5 pb-4 grid grid-cols-2 gap-4">
-                  <div className="bg-gray-800 rounded-lg p-3">
-                    <p className="text-gray-500 text-xs mb-2 font-medium">BEFORE</p>
-                    {Object.entries(log.changes).map(([key, val]) => (
-                      <p key={key} className="text-rose-400 text-sm">
-                        {key}: {String(val.old)}
+              {/* Expanded Block (Merged Code) */}
+              {expanded === log.id && (
+                <div className="px-5 pb-4 space-y-3 border-t border-gray-800/50 pt-3">
+                  
+                  {/* Info Row - Student, Course, Status */}
+                  <div className="flex flex-wrap gap-3">
+                    {log.student_id && (
+                      <div className="bg-gray-800 rounded-lg p-3 flex-1 min-w-[120px]">
+                        <p className="text-gray-500 text-xs mb-1 font-medium">STUDENT</p>
+                        <p className="text-white text-sm font-medium">
+                          {students.find(s => s.id === log.student_id)?.name || `ID: ${log.student_id}`}
+                        </p>
+                      </div>
+                    )}
+                    {log.course_id && (
+                      <div className="bg-gray-800 rounded-lg p-3 flex-1 min-w-[120px]">
+                        <p className="text-gray-500 text-xs mb-1 font-medium">COURSE</p>
+                        <p className="text-white text-sm font-medium">
+                          {courses.find(c => c.id === log.course_id)?.name || `ID: ${log.course_id}`}
+                        </p>
+                      </div>
+                    )}
+                    <div className="bg-gray-800 rounded-lg p-3">
+                      <p className="text-gray-500 text-xs mb-1 font-medium">STATUS</p>
+                      <p className={`text-sm font-medium ${log.status === 'success' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                        {log.status?.toUpperCase()}
                       </p>
-                    ))}
+                    </div>
                   </div>
-                  <div className="bg-gray-800 rounded-lg p-3">
-                    <p className="text-gray-500 text-xs mb-2 font-medium">AFTER</p>
-                    {Object.entries(log.changes).map(([key, val]) => (
-                      <p key={key} className="text-emerald-400 text-sm">
-                        {key}: {String(val.new)}
+
+                  {/* Performed By Section */}
+                  {log.performed_by_name && (
+                    <div className="bg-gray-800 rounded-lg p-3">
+                      <p className="text-gray-500 text-xs mb-1 font-medium">PERFORMED BY</p>
+                      <p className="text-indigo-400 text-sm font-semibold">
+                        {log.performed_by_name}
+                        <span className="text-gray-500 ml-2 text-xs font-normal capitalize">
+                          ({log.performed_by_role})
+                        </span>
                       </p>
-                    ))}
-                  </div>
+                    </div>
+                  )}
+
+                  {/* Changes Section (Before / After Grid) */}
+                  {log.changes && Object.keys(log.changes).length > 0 && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500 text-xs mb-2 font-medium">BEFORE</p>
+                        {Object.entries(log.changes).map(([key, val]) => (
+                          <p key={key} className="text-rose-400 text-sm break-all">
+                            <span className="text-gray-400">{key}:</span> {String(val?.old ?? "null")}
+                          </p>
+                        ))}
+                      </div>
+                      <div className="bg-gray-800 rounded-lg p-3">
+                        <p className="text-gray-500 text-xs mb-2 font-medium">AFTER</p>
+                        {Object.entries(log.changes).map(([key, val]) => (
+                          <p key={key} className="text-emerald-400 text-sm break-all">
+                            <span className="text-gray-400">{key}:</span> {String(val?.new ?? "null")}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                 </div>
               )}
             </div>

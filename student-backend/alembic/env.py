@@ -14,7 +14,7 @@ load_dotenv()
 
 # App ke Base aur Models import karo taaki Alembic ko tables ka pata chale
 from app.db.base import Base
-
+from app.models.user import User
 # Saare models import karo!
 from app.models.student import Student
 from app.models.course import Course

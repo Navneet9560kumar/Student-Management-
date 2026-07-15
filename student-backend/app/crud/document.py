@@ -5,17 +5,28 @@ from app.models.activity_log import ActivityLog
 
 # log helper 
 
-async def  create_log(db: AsyncSession, action_type: str, description: str, document_id: int = None, changes: dict = None):
+async def create_log(
+    db: AsyncSession,
+    action_type: str,
+    description: str,
+    student_id: int = None,
+    document_id: int = None,
+    performed_by_id: int = None,
+    performed_by_name: str = None,
+    performed_by_role: str = None
+):
     log = ActivityLog(
         action_type=action_type,
         description=description,
+        student_id=student_id,
         document_id=document_id,
-        status="success",
-        changes=changes
+        performed_by_id=performed_by_id,
+        performed_by_name=performed_by_name,
+        performed_by_role=performed_by_role,
+        status="success"
     )
     db.add(log)
     await db.commit()
-
     # Document upload
 
 

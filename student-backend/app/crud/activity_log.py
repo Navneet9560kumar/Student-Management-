@@ -15,7 +15,11 @@ async def get_all_logs(db: AsyncSession) -> list[ActivityLog]:
 async def get_all_student_logs(db: AsyncSession) -> list[ActivityLog]:
     result = await db.execute(
         select(ActivityLog)
-        .where(ActivityLog.student_id != None)
+        .where(
+            ActivityLog.student_id != None,
+            ActivityLog.course_id == None,
+            ActivityLog.document_id == None
+        )
         .order_by(ActivityLog.created_at.desc())
     )
     return result.scalars().all()

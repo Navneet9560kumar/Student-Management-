@@ -5,6 +5,34 @@ const API = axios.create({
 })
 
 
+// Har request mein token add karo
+API.interceptors.request.use((config)=>{
+  const token = localStorage.getItem("token");
+  if(token){
+    config.headers.Authorization = `Bearer  ${token}`;
+  }
+  return config;
+
+});
+
+//401 ke leye 
+API.interceptors.response.use(
+  (response)=> response,
+  (error)=>{
+    if(error.response?.status==401){
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href= "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+
+//auth
+export const register = (data)=> API.post("/auth/register", data);
+export const login = (data)=> API.post("/auth/login", data);
+export const getMe = () => API.get("/auth/me");
+
 //student api
 export const getAllStudents = () => API.get("/students");
 export const getStudents = getAllStudents;
@@ -44,3 +72,5 @@ export const deleteDocument=(id)=> API.delete(`/documents/${id}`)
 export const getAllLogs = () => API.get("/logs");
 export const getStudentLogs = (id) => API.get(`/logs/students/${id}`);
 export const getCourseLogs = (id) => API.get(`/logs/courses/${id}`);
+export const getAllStudentLogs =() => API.get("/logs/studnets");
+export const getAllCoureseLogs =() => API.get("/logs/courses");

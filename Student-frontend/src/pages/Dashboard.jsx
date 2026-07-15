@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { getAllStudents, getAllCourses , getEnrollments, getAllLogs } from "../api";
+// API endpoints ke names sahi kiye (getStudents, getCourses, etc.)
+import { getStudents, getCourses, getEnrollments, getAllLogs } from "../api";
 import { Users, BookOpen, ClipboardList, Activity } from "lucide-react";
 
 export default function Dashboard() {
@@ -16,20 +17,20 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [students, courses, enrollments, logs] = await Promise.all([
-          getAllStudents(),
-          getAllCourses (),
+          getStudents(),
+          getCourses(),
           getEnrollments(),
           getAllLogs(),
         ]);
         setStats({
-          students: students.data.length,
-          courses: courses.data.length,
-          enrollments: enrollments.data.length,
-          logs: logs.data.length,
+          students: students.data?.length || 0,
+          courses: courses.data?.length || 0,
+          enrollments: enrollments.data?.length || 0,
+          logs: logs.data?.length || 0,
         });
-        setRecentLogs(logs.data.slice(0, 5));
+        setRecentLogs(logs.data?.slice(0, 5) || []);
       } catch (err) {
-        console.error(err);
+        console.error("Dashboard fetch error:", err);
       } finally {
         setLoading(false);
       }
@@ -91,6 +92,9 @@ export default function Dashboard() {
               </p>
             </div>
           ))}
+          {recentLogs.length === 0 && (
+            <p className="text-gray-500 text-sm">No recent activity logs available.</p>
+          )}
         </div>
       </div>
     </div>
