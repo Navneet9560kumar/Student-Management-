@@ -3,6 +3,7 @@ from sqlalchemy import select
 from app.models.course import Course
 from app.models.activity_log import ActivityLog
 from app.schemas.course import CourseCreate, CourseUpdate
+from sqlalchemy.orm import selectinload
 
 
 # Log helper — course_id add kiya!
@@ -10,7 +11,7 @@ async def create_log(db: AsyncSession, action_type: str, description: str, cours
     log = ActivityLog(
         action_type=action_type,
         description=description,
-        course_id=course_id,  # ← yeh missing tha!
+        course_id=course_id,  
         status="success",
         changes=changes
     )
@@ -39,8 +40,15 @@ async def get_all_courses(db: AsyncSession) -> list[Course]:
 
 
 async def get_course_by_id(db: AsyncSession, course_id: int) -> Course | None:
-    result = await db.execute(select(Course).where(Course.id == course_id))
-    return result.scalar_one_or_none()
+    result = await db.execute(select(Course)
+    .where(Course.id == course_id)
+    .options(
+        selectinload(Course.enrollments )
+    )
+
+                              
+    )
+    return result.unique().scalar_one_or_none()
 
 
 async def update_course(db: AsyncSession, course_id: int, data: CourseUpdate) -> Course | None:

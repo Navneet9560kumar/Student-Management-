@@ -22,24 +22,39 @@ router = APIRouter(prefix="/students", tags=["Students"])
 ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
 
 
+# GET All Students (Principal + Teacher)
+@router.get("/", response_model=list[StudentResponse])
+async def get_all_students(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_teacher)
+):
+    try: 
+        return await crud.get_all_students(db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 #only for student
+
 @router.post("/", response_model=StudentResponse)
 async def create_student(
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(default="123456"),
     phone: Optional[str] = Form(default=None),
-    doc_type: Optional[str] = Form(default=None),      # ← optional
-    file: Optional[UploadFile] = File(default=None),   # ← optional
+    doc_type: Optional[str] = Form(default=None),      
+    file: Optional[UploadFile] = File(default=None),   
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_principal)
 ):
+    print("mai banane jaa raha  jaa raha hu ")
     try:
         # Student banao
+        print("ban gaya kay ")
         from app.schemas.user import StudentCreate as SC
         data = SC(name=name, email=email, password=password, phone=phone)
         student = await crud.create_student(db, data, current_user=current_user)
-
+        print("ban gaya")
+        
         # Document upload — optional!
         if file and doc_type:
             if file.content_type not in ALLOWED_TYPES:
@@ -73,7 +88,9 @@ async def create_student(
             db.add(log)
             await db.commit()
 
-        return student
+       
+        student_with_data = await crud.get_student_by_id(db, student.id)
+        return student_with_data
 
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Email already exists!")
@@ -81,39 +98,11 @@ async def create_student(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
-#principle +teacher
-@router.get("/", response_model=list[StudentResponse])
-async def get_all_students(
-    db:AsyncSession= Depends(get_db),
-    current_user:User=Depends(require_teacher)
-):
-    try: return await crud.get_all_students(db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-# Principal + Teacher + Student (apna) — single student
-@router.get("/{student_id}", response_model= StudentResponse)
-async def get_student(
-    student_id:int,
-    db:AsyncSession= Depends(get_db),
-    current_user:User= Depends(require_student)
-):
-    try:
-        student =await crud.get_student_by_id(db, student_id)
-        if not student:
-            raise HTTPException(status_code=404, detail="Student not found")
-        return student
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
 
     
 
 # Sirf Principal — update
-@router.put("/{studnet_id}", response_model=StudentResponse)
+@router.put("/{student_id}", response_model=StudentResponse)
 async def update_student(
     student_id:int,
     data: StudentUpdate,
@@ -125,7 +114,13 @@ async def update_student(
         student = await crud.update_student(db, student_id, data,current_user=current_user)
         if not student:
             raise HTTPException(status_code=404, detail="Student not found")
-        return student
+          
+        student_with_data  = await crud.get_student_by_id(db, student_id)
+      
+
+        
+
+        return student_with_data
     except HTTPException:
         raise
     except Exception as e:
@@ -147,4 +142,5 @@ async def delete_student(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) 
+    

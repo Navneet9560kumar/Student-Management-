@@ -15,9 +15,9 @@ async def create_log(
     description: str,
     student_id: int = None,
     changes: dict = None,
-    performed_by_id: int = None,      # ← kaun ne kiya
-    performed_by_name: str = None,    # ← naam
-    performed_by_role: str = None     # ← role
+    performed_by_id: int = None,     
+    performed_by_name: str = None,   
+    performed_by_role: str = None     
 ):
     log = ActivityLog(
         action_type=action_type,
@@ -41,7 +41,10 @@ async def create_student(db: AsyncSession, data: StudentCreate, current_user=Non
         phone=data.phone,
         photo_url=data.photo_url,
         password=hash_password(data.password),  
-        role=data.role 
+        role=data.role,
+        
+
+
     )
     db.add(student)
     await db.commit()
@@ -72,14 +75,21 @@ async def get_all_students(db: AsyncSession) -> list[User]:
     )
                               
 )
-    # ↓ Yahan scalar() ki jagah scalars() aayega
+   
     return result.unique().scalars().all()
 
 #get student by id
 
 async def get_student_by_id(db: AsyncSession, student_id:int)-> User | None:
-      result = await db.execute(select(User).where(User.id ==student_id,User.role == "student"))
-      return result.scalar_one_or_none()
+      result = await db.execute(select(User).where(User.id ==student_id,User.role == "student")
+      .options(
+          selectinload(User.enrollments),
+          selectinload(User.documents)
+      )
+    )
+      #uniqe( )
+      return  result.unique().scalar_one_or_none()
+      
 
 #update student
 

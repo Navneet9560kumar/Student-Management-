@@ -16,40 +16,75 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [students, courses, enrollments, logs] = await Promise.all([
+        // Promise.allSettled ek API ke fail hone par dusri ko block nahi karega
+        const results = await Promise.allSettled([
           getStudents(),
           getCourses(),
           getEnrollments(),
           getAllLogs(),
         ]);
+
+        // Agar API success hui toh data nikalo, warna khali array [] de do
+        const studentsData =
+          results[0].status === "fulfilled" ? results[0].value.data : [];
+        const coursesData =
+          results[1].status === "fulfilled" ? results[1].value.data : [];
+        const enrollmentsData =
+          results[2].status === "fulfilled" ? results[2].value.data : [];
+        const logsData =
+          results[3].status === "fulfilled" ? results[3].value.data : [];
+
         setStats({
-          students: students.data?.length || 0,
-          courses: courses.data?.length || 0,
-          enrollments: enrollments.data?.length || 0,
-          logs: logs.data?.length || 0,
+          students: studentsData.length || 0,
+          courses: coursesData.length || 0,
+          enrollments: enrollmentsData.length || 0,
+          logs: logsData.length || 0,
         });
-        setRecentLogs(logs.data?.slice(0, 5) || []);
+
+        setRecentLogs(logsData.slice(0, 5) || []);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
   const cards = [
-    { label: "Total Students", value: stats.students, icon: <Users size={24} />, color: "bg-indigo-600" },
-    { label: "Total Courses", value: stats.courses, icon: <BookOpen size={24} />, color: "bg-emerald-600" },
-    { label: "Enrollments", value: stats.enrollments, icon: <ClipboardList size={24} />, color: "bg-amber-600" },
-    { label: "Activity Logs", value: stats.logs, icon: <Activity size={24} />, color: "bg-rose-600" },
+    {
+      label: "Total Students",
+      value: stats.students,
+      icon: <Users size={24} />,
+      color: "bg-indigo-600",
+    },
+    {
+      label: "Total Courses",
+      value: stats.courses,
+      icon: <BookOpen size={24} />,
+      color: "bg-emerald-600",
+    },
+    {
+      label: "Enrollments",
+      value: stats.enrollments,
+      icon: <ClipboardList size={24} />,
+      color: "bg-amber-600",
+    },
+    {
+      label: "Activity Logs",
+      value: stats.logs,
+      icon: <Activity size={24} />,
+      color: "bg-rose-600",
+    },
   ];
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-gray-400 text-lg">Loading...</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-400 text-lg">Loading...</p>
+      </div>
+    );
 
   return (
     <div className="space-y-6">
@@ -58,10 +93,11 @@ export default function Dashboard() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
-          <div key={card.label} className="bg-gray-900 rounded-xl p-5 flex items-center gap-4 border border-gray-800">
-            <div className={`${card.color} p-3 rounded-lg`}>
-              {card.icon}
-            </div>
+          <div
+            key={card.label}
+            className="bg-gray-900 rounded-xl p-5 flex items-center gap-4 border border-gray-800"
+          >
+            <div className={`${card.color} p-3 rounded-lg`}>{card.icon}</div>
             <div>
               <p className="text-gray-400 text-sm">{card.label}</p>
               <p className="text-2xl font-bold text-white">{card.value}</p>
@@ -72,17 +108,27 @@ export default function Dashboard() {
 
       {/* Recent Logs */}
       <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
-        <h2 className="text-lg font-semibold text-white mb-4">Recent Activity</h2>
+        <h2 className="text-lg font-semibold text-white mb-4">
+          Recent Activity
+        </h2>
         <div className="space-y-3">
           {recentLogs.map((log) => (
-            <div key={log.id} className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0">
+            <div
+              key={log.id}
+              className="flex items-center justify-between py-2 border-b border-gray-800 last:border-0"
+            >
               <div className="flex items-center gap-3">
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  log.action_type === "CREATE" ? "bg-emerald-900 text-emerald-400" :
-                  log.action_type === "UPDATE" ? "bg-indigo-900 text-indigo-400" :
-                  log.action_type === "DELETE" ? "bg-rose-900 text-rose-400" :
-                  "bg-amber-900 text-amber-400"
-                }`}>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full font-medium ${
+                    log.action_type === "CREATE"
+                      ? "bg-emerald-900 text-emerald-400"
+                      : log.action_type === "UPDATE"
+                        ? "bg-indigo-900 text-indigo-400"
+                        : log.action_type === "DELETE"
+                          ? "bg-rose-900 text-rose-400"
+                          : "bg-amber-900 text-amber-400"
+                  }`}
+                >
                   {log.action_type}
                 </span>
                 <p className="text-sm text-gray-300">{log.description}</p>
@@ -93,7 +139,9 @@ export default function Dashboard() {
             </div>
           ))}
           {recentLogs.length === 0 && (
-            <p className="text-gray-500 text-sm">No recent activity logs available.</p>
+            <p className="text-gray-500 text-sm">
+              No recent activity logs available.
+            </p>
           )}
         </div>
       </div>

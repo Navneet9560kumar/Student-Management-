@@ -9,6 +9,7 @@ from app.schemas.document import DocumentResponse
 from sqlalchemy import select
 from app.core.dependencies import require_principal
 from app.models.user import User
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
@@ -17,12 +18,25 @@ MAX_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 # Log helper
-async def create_log(db: AsyncSession, action_type: str, description: str, student_id: int = None, document_id: int = None):
+# Updated Log helper
+async def create_log(
+    db: AsyncSession, 
+    action_type: str, 
+    description: str, 
+    student_id: int = None, 
+    document_id: int = None,
+    performed_by_id: int = None,    
+    performed_by_name: str = None,
+    performed_by_role: str = None
+):
     log = ActivityLog(
         action_type=action_type,
         description=description,
         student_id=student_id,
         document_id=document_id,
+        performed_by_id=performed_by_id,      
+        performed_by_name=performed_by_name,
+        performed_by_role=performed_by_role,
         status="success"
     )
     db.add(log)
@@ -36,9 +50,15 @@ async def upload_document(
     doc_type: str = Form(...),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
-     current_user: User = Depends(require_principal) 
+     current_user: User = Depends(get_current_user) 
 ):
     try:
+        if current_user.role== "student" and current_user.id !=student_id:
+            raise HTTPException(status_code=403, detail="you can only see your document ")
+
+
+
+
         if file.content_type not in ALLOWED_TYPES:
             raise HTTPException(status_code=400, detail="Only JPG, PNG, PDF allowed!")
 

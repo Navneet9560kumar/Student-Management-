@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllLogs, getStudentLogs, getCourseLogs } from "../api";
-import { getStudents, getCourses } from "../api";
+import { getAllLogs, getStudentLogs, getCourseLogs, getStudents, getCourses } from "../api";
 
 export default function ActivityLogs() {
   const [logs, setLogs] = useState([]);
@@ -14,9 +13,9 @@ export default function ActivityLogs() {
   useEffect(() => {
     const fetchMeta = async () => {
       try {
-        const [s, c] = await Promise.all([getStudents(), getCourses()]);
-        setStudents(s.data);
-        setCourses(c.data);
+        const [s, c] = await Promise.allSettled([getStudents(), getCourses()]);
+        if (s.status === "fulfilled") setStudents(s.value.data);
+        if (c.status === "fulfilled") setCourses(c.value.data);
       } catch (err) {
         console.error("Error fetching metadata:", err);
       }
@@ -61,6 +60,13 @@ export default function ActivityLogs() {
       case "LOGIN": return "bg-cyan-900 text-cyan-400";
       default: return "bg-gray-800 text-gray-400";
     }
+  };
+
+  // Safe renderer for complex objects like documents or enrollments
+  const renderChangeValue = (val) => {
+    if (val === null || val === undefined) return "null";
+    if (typeof val === "object") return JSON.stringify(val, null, 2);
+    return String(val);
   };
 
   return (
@@ -129,14 +135,14 @@ export default function ActivityLogs() {
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${actionColor(log.action_type)}`}>
                     {log.action_type}
                   </span>
-                  <p className="text-gray-300 text-sm">{log.description}</p>
+                  <p className="text-gray-300 text-sm text-left line-clamp-1">{log.description}</p>
                 </div>
-                <p className="text-gray-500 text-xs">
+                <p className="text-gray-500 text-xs shrink-0 ml-4">
                   {new Date(log.created_at).toLocaleString()}
                 </p>
               </button>
 
-              {/* Expanded Block (Merged Code) */}
+              {/* Expanded Block */}
               {expanded === log.id && (
                 <div className="px-5 pb-4 space-y-3 border-t border-gray-800/50 pt-3">
                   
@@ -179,25 +185,43 @@ export default function ActivityLogs() {
                     </div>
                   )}
 
-                  {/* Changes Section (Before / After Grid) */}
-                  {log.changes && Object.keys(log.changes).length > 0 && (
-                    <div className="grid grid-cols-2 gap-4">
+                  {/* Safely Render Changes (Handles null & complex objects) */}
+                  {log.changes && typeof log.changes === 'object' && Object.keys(log.changes).length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                       <div className="bg-gray-800 rounded-lg p-3">
                         <p className="text-gray-500 text-xs mb-2 font-medium">BEFORE</p>
-                        {Object.entries(log.changes).map(([key, val]) => (
-                          <p key={key} className="text-rose-400 text-sm break-all">
-                            <span className="text-gray-400">{key}:</span> {String(val?.old ?? "null")}
-                          </p>
-                        ))}
+                        <div className="space-y-2">
+                          {Object.entries(log.changes).map(([key, val]) => (
+                            <div key={key} className="text-sm">
+                              <span className="text-gray-400 block mb-1">{key}:</span>
+                              <pre className="text-rose-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
+                                {renderChangeValue(val?.old)}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+                      
                       <div className="bg-gray-800 rounded-lg p-3">
                         <p className="text-gray-500 text-xs mb-2 font-medium">AFTER</p>
-                        {Object.entries(log.changes).map(([key, val]) => (
-                          <p key={key} className="text-emerald-400 text-sm break-all">
-                            <span className="text-gray-400">{key}:</span> {String(val?.new ?? "null")}
-                          </p>
-                        ))}
+                        <div className="space-y-2">
+                          {Object.entries(log.changes).map(([key, val]) => (
+                            <div key={key} className="text-sm">
+                              <span className="text-gray-400 block mb-1">{key}:</span>
+                              <pre className="text-emerald-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
+                                {renderChangeValue(val?.new)}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+                    </div>
+                  )}
+                  
+                  {/* Agar changes null hai toh */}
+                  {(!log.changes || (typeof log.changes === 'object' && Object.keys(log.changes).length === 0)) && (
+                    <div className="bg-gray-800 rounded-lg p-3">
+                      <p className="text-gray-500 text-xs">No explicit fields changed or recorded.</p>
                     </div>
                   )}
                   

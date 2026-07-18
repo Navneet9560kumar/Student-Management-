@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from app.core.role import Role
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 class UserRegister(BaseModel):
     name: str
@@ -46,4 +46,33 @@ class StudentUpdate(BaseModel):
     photo_url: Optional[str] = None  
     is_active: Optional[bool] = None
 
-StudentResponse = UserResponse
+
+
+
+
+# app/schemas/user.py mein yeh update karo:
+
+class DocumentResponseItem(BaseModel):
+    id: int
+    doc_type: Optional[str] = None       
+    file_url: Optional[str] = None       
+    uploaded_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True}
+
+class EnrollmentResponseItem(BaseModel):
+    id: int
+    course_id: Optional[int] = None     
+    status: Optional[str] = None         
+    enrolled_at: Optional[datetime] = None
+
+    model_config = {"from_attributes": True} 
+
+class StudentResponse(UserResponse):
+    documents: List[DocumentResponseItem] = []      
+    enrollments: List[EnrollmentResponseItem] = []   
+
+    model_config = {"from_attributes": True}
+
+
+

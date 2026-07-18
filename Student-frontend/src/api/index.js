@@ -72,5 +72,5 @@ export const deleteDocument=(id)=> API.delete(`/documents/${id}`)
 export const getAllLogs = () => API.get("/logs");
 export const getStudentLogs = (id) => API.get(`/logs/students/${id}`);
 export const getCourseLogs = (id) => API.get(`/logs/courses/${id}`);
-export const getAllStudentLogs =() => API.get("/logs/studnets");
-export const getAllCoureseLogs =() => API.get("/logs/courses");
+export const getAllStudentLogs =() => API.get("/logs/students");
+export const getAllCourseLogs =() => API.get("/logs/courses");

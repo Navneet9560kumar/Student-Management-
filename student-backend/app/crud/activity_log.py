@@ -8,6 +8,7 @@ async def get_all_logs(db: AsyncSession) -> list[ActivityLog]:
     result = await db.execute(
         select(ActivityLog).order_by(ActivityLog.created_at.desc())
     )
+    
     return result.scalars().all()
 
 
