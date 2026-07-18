@@ -19,9 +19,13 @@ app = FastAPI(title="Student Management System")
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://student-management-6urjhzxaz.vercel.app"
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 app.add_exception_handler(UnicornException, unicorn_exception_handler)
