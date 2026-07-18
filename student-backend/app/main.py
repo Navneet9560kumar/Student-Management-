@@ -21,7 +21,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173", 
-        "https://student-management-6urjhzxaz.vercel.app"
+        "https://student-management-6urjhzxaz.vercel.app",
+        "https://student-management-k29g9w0ey.vercel.app"
     ],
     allow_methods=["*"],
     allow_headers=["*"],
