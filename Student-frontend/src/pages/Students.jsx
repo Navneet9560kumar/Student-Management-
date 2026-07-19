@@ -262,6 +262,8 @@ export default function Students() {
                                   <button
                                     onClick={() =>
                                       // Apni Render backend link daal do
+
+                                      // window.open(d.file_url.startsWith("http") ? d.file_url : `http://localhost:8000${d.file_url}`, "_blank")
                                       window.open(
                                         d.file_url.startsWith("http")
                                           ? d.file_url

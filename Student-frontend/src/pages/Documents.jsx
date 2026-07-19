@@ -163,13 +163,29 @@ export default function Documents() {
                   </p>
                 </div>
               </div>
+
+              {/* <button
+                onClick={() =>
+                  window.open(
+                    doc.file_url.startsWith("http")
+                      ? doc.file_url
+                      : `http://localhost:8000${doc.file_url}`,
+                    "_blank",
+                  )
+                }
+                className="text-indigo-400 text-xs hover:underline text-left"
+              >
+                View File →
+              </button> */}
+
+
               <button
                 onClick={() =>
                   window.open(
                     doc.file_url.startsWith("http")
                       ? doc.file_url
                       : `https://student-management-2-9fnf.onrender.com${doc.file_url}`,
-                    "_blank",
+                    "_blank"
                   )
                 }
                 className="text-indigo-400 text-xs hover:underline text-left"
