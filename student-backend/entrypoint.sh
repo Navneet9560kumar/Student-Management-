@@ -1,6 +1,9 @@
 #!/bin/bash
+set -e
+
 echo "Running Alembic migrations..."
-alembic upgrade head
+alembic upgrade head || echo "Migration warning - proceeding anyway"
+
 echo "Starting FastAPI server..."
 uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
 
