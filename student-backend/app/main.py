@@ -63,12 +63,12 @@ async def root():
     return {"message": "Student Management System API - v1.0"}
 
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: str):
-    if item_id not in items:
-        raise HTTPException(status_code=404, detail="Item nahi mila bhai ")
-    else:
-        raise HTTPException(status_code=300, detail="he is alive" )
+# @app.get("/items/{item_id}")
+# async def read_item(item_id: str):
+#     if item_id not in items:
+#         raise HTTPException(status_code=404, detail="Item nahi mila bhai ")
+#     else:
+#         raise HTTPException(status_code=300, detail="he is alive" )
        
 
     
