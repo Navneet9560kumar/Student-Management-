@@ -20,10 +20,13 @@ app = FastAPI(title="Student Management System")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173", 
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "https://student-management-6urjhzxaz.vercel.app",
-        "https://student-management-k29g9w0ey.vercel.app"
+        "https://student-management-k29g9w0ey.vercel.app",
+        "https://student-management-indol-zeta.vercel.app",
     ],
+    allow_origin_regex=r"https://student-management-[a-z0-9-]+\.vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
     allow_credentials=True,
