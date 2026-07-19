@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { getEnrollments, createEnrollment, getStudents, getCourses } from "../api";
-import { Plus, X } from "lucide-react";
+// API se deleteEnrollment import karna mat bhoolna (agar api.js mein nahi hai toh bana lena)
+import { getEnrollments, createEnrollment, getStudents, getCourses, deleteEnrollment } from "../api";
+import { Plus, X, Trash2 } from "lucide-react";
 
 export default function Enrollments() {
   const [enrollments, setEnrollments] = useState([]);
@@ -13,7 +14,6 @@ export default function Enrollments() {
 
   const fetchAll = async () => {
     try {
-      // Promise.allSettled se agar ek API fail bhi ho, toh baaki load ho jayengi
       const [e, s, c] = await Promise.allSettled([
         getEnrollments(),
         getStudents(),
@@ -39,6 +39,16 @@ export default function Enrollments() {
   const getCourseName = (id) => courses.find((c) => c.id === id)?.name || "Unknown";
 
   const handleSubmit = async () => {
+    // 🔥 Naya Logic: Check karo ki pehle se toh enrolled nahi hai
+    const isDuplicate = enrollments.some(
+      (e) => e.student_id === parseInt(form.student_id) && e.course_id === parseInt(form.course_id)
+    );
+
+    if (isDuplicate) {
+      setError("Error: Student is already enrolled in this course!");
+      return;
+    }
+
     try {
       await createEnrollment({
         student_id: parseInt(form.student_id),
@@ -48,6 +58,18 @@ export default function Enrollments() {
       fetchAll();
     } catch (err) {
       setError(err.response?.data?.detail || "Something went wrong!");
+    }
+  };
+
+  // 🔥 Naya Logic: Delete karne ka function
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this enrollment?")) return;
+    try {
+      await deleteEnrollment(id);
+      fetchAll(); // Delete hone ke baad table refresh karega
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete. Make sure deleteEnrollment exists in your api.js");
     }
   };
 
@@ -79,6 +101,7 @@ export default function Enrollments() {
               <th className="px-4 py-3 text-left">Course</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Enrolled At</th>
+              <th className="px-4 py-3 text-left">Actions</th> {/* 🔥 Naya Action column */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -94,6 +117,16 @@ export default function Enrollments() {
                 </td>
                 <td className="px-4 py-3 text-gray-400">
                   {new Date(e.enrolled_at).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-3">
+                  {/* 🔥 Naya Delete Button */}
+                  <button
+                    onClick={() => handleDelete(e.id)}
+                    className="p-1.5 rounded-lg bg-rose-900 text-rose-400 hover:bg-rose-800 transition"
+                    title="Delete Enrollment"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </td>
               </tr>
             ))}
