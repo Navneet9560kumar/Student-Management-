@@ -13,14 +13,17 @@ export default function Enrollments() {
 
   const fetchAll = async () => {
     try {
-      const [e, s, c] = await Promise.all([
+      // Promise.allSettled se agar ek API fail bhi ho, toh baaki load ho jayengi
+      const [e, s, c] = await Promise.allSettled([
         getEnrollments(),
         getStudents(),
         getCourses(),
       ]);
-      setEnrollments(e.data);
-      setStudents(s.data);
-      setCourses(c.data);
+
+      if (e.status === "fulfilled") setEnrollments(e.value.data);
+      if (s.status === "fulfilled") setStudents(s.value.data);
+      if (c.status === "fulfilled") setCourses(c.value.data);
+      
     } catch (err) {
       console.error(err);
     } finally {
@@ -28,7 +31,9 @@ export default function Enrollments() {
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => { 
+    fetchAll(); 
+  }, []);
 
   const getStudentName = (id) => students.find((s) => s.id === id)?.name || "Unknown";
   const getCourseName = (id) => courses.find((c) => c.id === id)?.name || "Unknown";
