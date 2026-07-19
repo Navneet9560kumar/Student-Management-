@@ -185,45 +185,60 @@ export default function ActivityLogs() {
                     </div>
                   )}
 
-                  {/* Safely Render Changes (Handles null & complex objects) */}
-                  {log.changes && typeof log.changes === 'object' && Object.keys(log.changes).length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500 text-xs mb-2 font-medium">BEFORE</p>
-                        <div className="space-y-2">
-                          {Object.entries(log.changes).map(([key, val]) => (
-                            <div key={key} className="text-sm">
-                              <span className="text-gray-400 block mb-1">{key}:</span>
-                              <pre className="text-rose-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
-                                {renderChangeValue(val?.old)}
-                              </pre>
+                  {/* Safely Render Changes (Handles stringified JSON, null, & objects) */}
+                  {(() => {
+                    let changesObj = log.changes;
+                    
+                    if (typeof changesObj === 'string') {
+                      try {
+                        changesObj = JSON.parse(changesObj);
+                      } catch (e) {
+                        changesObj = null;
+                      }
+                    }
+
+                    const hasValidChanges = changesObj && typeof changesObj === 'object' && Object.keys(changesObj).length > 0;
+
+                    if (hasValidChanges) {
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                          <div className="bg-gray-800 rounded-lg p-3">
+                            <p className="text-gray-500 text-xs mb-2 font-medium">BEFORE</p>
+                            <div className="space-y-2">
+                              {Object.entries(changesObj).map(([key, val]) => (
+                                <div key={key} className="text-sm">
+                                  <span className="text-gray-400 block mb-1">{key}:</span>
+                                  <pre className="text-rose-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
+                                    {renderChangeValue(val?.old)}
+                                  </pre>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-800 rounded-lg p-3">
-                        <p className="text-gray-500 text-xs mb-2 font-medium">AFTER</p>
-                        <div className="space-y-2">
-                          {Object.entries(log.changes).map(([key, val]) => (
-                            <div key={key} className="text-sm">
-                              <span className="text-gray-400 block mb-1">{key}:</span>
-                              <pre className="text-emerald-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
-                                {renderChangeValue(val?.new)}
-                              </pre>
+                          </div>
+                          
+                          <div className="bg-gray-800 rounded-lg p-3">
+                            <p className="text-gray-500 text-xs mb-2 font-medium">AFTER</p>
+                            <div className="space-y-2">
+                              {Object.entries(changesObj).map(([key, val]) => (
+                                <div key={key} className="text-sm">
+                                  <span className="text-gray-400 block mb-1">{key}:</span>
+                                  <pre className="text-emerald-400 bg-gray-900 p-2 rounded text-xs overflow-x-auto">
+                                    {renderChangeValue(val?.new)}
+                                  </pre>
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          </div>
                         </div>
+                      );
+                    }
+
+                    return (
+                      <div className="bg-gray-800 rounded-lg p-3 mt-2">
+                        <p className="text-gray-500 text-xs">No explicit fields changed or recorded.</p>
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* Agar changes null hai toh */}
-                  {(!log.changes || (typeof log.changes === 'object' && Object.keys(log.changes).length === 0)) && (
-                    <div className="bg-gray-800 rounded-lg p-3">
-                      <p className="text-gray-500 text-xs">No explicit fields changed or recorded.</p>
-                    </div>
-                  )}
+                    );
+                  })()}
                   
                 </div>
               )}
