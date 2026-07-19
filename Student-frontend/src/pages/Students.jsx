@@ -1,26 +1,31 @@
 import React, { useEffect, useState } from "react";
 // API functions
-import { 
+import {
   getAllStudents,
   createStudent,
   updateStudent,
-  deleteStudent 
+  deleteStudent,
 } from "../api";
 // 🔥 Eye icon import kar liya hai
-import { Plus, Pencil, Trash2, X, FileText, Eye } from "lucide-react"; 
+import { Plus, Pencil, Trash2, X, FileText, Eye } from "lucide-react";
 
 export default function Students() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "123456" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "123456",
+  });
   const [docType, setDocType] = useState("");
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
-  
+
   // 🔥 Naya state: Kaunse student ki details open karni hai
-  const [expandedId, setExpandedId] = useState(null); 
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchStudents = async () => {
     try {
@@ -33,8 +38,8 @@ export default function Students() {
     }
   };
 
-  useEffect(() => { 
-    fetchStudents(); 
+  useEffect(() => {
+    fetchStudents();
   }, []);
 
   const openCreate = () => {
@@ -48,7 +53,12 @@ export default function Students() {
 
   const openEdit = (student) => {
     setEditing(student);
-    setForm({ name: student.name, email: student.email, phone: student.phone || "", password: "" });
+    setForm({
+      name: student.name,
+      email: student.email,
+      phone: student.phone || "",
+      password: "",
+    });
     setDocType("");
     setFile(null);
     setError("");
@@ -65,13 +75,13 @@ export default function Students() {
         formData.append("email", form.email);
         formData.append("phone", form.phone);
         formData.append("password", form.password);
-        
+
         // Optional Document Upload
         if (docType && file) {
           formData.append("doc_type", docType);
           formData.append("file", file);
         }
-        
+
         await createStudent(formData);
       }
       setShowModal(false);
@@ -91,11 +101,12 @@ export default function Students() {
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-full">
-      <p className="text-gray-400">Loading...</p>
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-400">Loading...</p>
+      </div>
+    );
 
   return (
     <div className="space-y-6">
@@ -125,32 +136,43 @@ export default function Students() {
           <tbody className="divide-y divide-gray-800">
             {students.map((s) => (
               <React.Fragment key={s.id}>
-                
                 {/* Main Student Row */}
                 <tr className="hover:bg-gray-800 transition">
                   <td className="px-4 py-3 text-gray-400">#{s.id}</td>
                   <td className="px-4 py-3 text-white font-medium flex items-center gap-2">
                     {/* Agar student ka photo_url hai toh dikhao */}
                     {s.photo_url && (
-                      <img src={`http://localhost:8000${s.photo_url}`} alt="profile" className="w-6 h-6 rounded-full object-cover" />
+                      <img
+                        src={`http://localhost:8000${s.photo_url}`}
+                        alt="profile"
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
                     )}
                     {s.name}
                   </td>
                   <td className="px-4 py-3 text-gray-400">{s.email}</td>
                   <td className="px-4 py-3 text-gray-400">{s.phone || "-"}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      s.is_active ? "bg-emerald-900 text-emerald-400" : "bg-rose-900 text-rose-400"
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        s.is_active
+                          ? "bg-emerald-900 text-emerald-400"
+                          : "bg-rose-900 text-rose-400"
+                      }`}
+                    >
                       {s.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td className="px-4 py-3 flex gap-2">
                     {/* 🔥 View Details Button (Eye Icon) */}
                     <button
-                      onClick={() => setExpandedId(expandedId === s.id ? null : s.id)}
+                      onClick={() =>
+                        setExpandedId(expandedId === s.id ? null : s.id)
+                      }
                       className={`p-1.5 rounded-lg transition ${
-                        expandedId === s.id ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        expandedId === s.id
+                          ? "bg-indigo-600 text-white"
+                          : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                       }`}
                       title="View Details"
                     >
@@ -174,9 +196,11 @@ export default function Students() {
                 {/* 🔥 Expanded Details Section (Documents & Enrollments) */}
                 {expandedId === s.id && (
                   <tr className="bg-gray-800/30">
-                    <td colSpan="6" className="px-6 py-4 border-t border-gray-800">
+                    <td
+                      colSpan="6"
+                      className="px-6 py-4 border-t border-gray-800"
+                    >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
                         {/* Enrollments List */}
                         <div>
                           <h4 className="text-sm font-semibold text-indigo-400 mb-3 flex items-center gap-2">
@@ -184,16 +208,24 @@ export default function Students() {
                           </h4>
                           {s.enrollments && s.enrollments.length > 0 ? (
                             <div className="space-y-2">
-                              {s.enrollments.map(e => (
-                                <div key={e.id} className="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                              {s.enrollments.map((e) => (
+                                <div
+                                  key={e.id}
+                                  className="bg-gray-900 p-3 rounded-lg border border-gray-700"
+                                >
                                   <div className="flex justify-between items-center mb-1">
-                                    <p className="text-sm text-white font-medium">Course ID: #{e.course_id}</p>
+                                    <p className="text-sm text-white font-medium">
+                                      Course ID: #{e.course_id}
+                                    </p>
                                     <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900/50 text-emerald-400 capitalize">
                                       {e.status}
                                     </span>
                                   </div>
                                   <p className="text-xs text-gray-500">
-                                    Enrolled: {new Date(e.enrolled_at).toLocaleDateString()}
+                                    Enrolled:{" "}
+                                    {new Date(
+                                      e.enrolled_at,
+                                    ).toLocaleDateString()}
                                   </p>
                                 </div>
                               ))}
@@ -212,16 +244,31 @@ export default function Students() {
                           </h4>
                           {s.documents && s.documents.length > 0 ? (
                             <div className="space-y-2">
-                              {s.documents.map(d => (
-                                <div key={d.id} className="bg-gray-900 p-3 rounded-lg border border-gray-700 flex justify-between items-center">
+                              {s.documents.map((d) => (
+                                <div
+                                  key={d.id}
+                                  className="bg-gray-900 p-3 rounded-lg border border-gray-700 flex justify-between items-center"
+                                >
                                   <div>
-                                    <p className="text-sm text-white font-medium">{d.doc_type}</p>
+                                    <p className="text-sm text-white font-medium">
+                                      {d.doc_type}
+                                    </p>
                                     <p className="text-xs text-gray-500">
-                                      {new Date(d.uploaded_at).toLocaleDateString()}
+                                      {new Date(
+                                        d.uploaded_at,
+                                      ).toLocaleDateString()}
                                     </p>
                                   </div>
-                                  <button 
-                                    onClick={() => window.open(d.file_url.startsWith("http") ? d.file_url : `http://localhost:8000${d.file_url}`, "_blank")}
+                                  <button
+                                    onClick={() =>
+                                      // Apni Render backend link daal do
+                                      window.open(
+                                        d.file_url.startsWith("http")
+                                          ? d.file_url
+                                          : `https://student-management-2-9fnf.onrender.com${d.file_url}`,
+                                        "_blank",
+                                      )
+                                    }
                                     className="text-indigo-400 text-xs hover:underline bg-indigo-900/30 px-3 py-1.5 rounded-md transition"
                                   >
                                     View File
@@ -235,7 +282,6 @@ export default function Students() {
                             </p>
                           )}
                         </div>
-
                       </div>
                     </td>
                   </tr>
@@ -254,7 +300,10 @@ export default function Students() {
               <h2 className="text-lg font-semibold text-white">
                 {editing ? "Edit Student" : "Add Student"}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
                 <X size={20} />
               </button>
             </div>
@@ -283,13 +332,15 @@ export default function Students() {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               />
-              
+
               {/* Sirf naya student banate waqt Document upload ka option */}
               {!editing && (
                 <div className="pt-4 mt-4 border-t border-gray-800">
                   <div className="flex items-center gap-2 mb-3 text-gray-400">
                     <FileText size={16} />
-                    <span className="text-sm font-medium">Document (Optional)</span>
+                    <span className="text-sm font-medium">
+                      Document (Optional)
+                    </span>
                   </div>
                   <div className="space-y-3">
                     <input
@@ -308,7 +359,9 @@ export default function Students() {
                       />
                     </div>
                     {file && (
-                      <p className="text-xs text-gray-500 mt-1">Selected: {file.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Selected: {file.name}
+                      </p>
                     )}
                   </div>
                 </div>
