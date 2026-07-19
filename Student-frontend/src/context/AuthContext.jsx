@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { login as loginApi, register as registerApi } from "../api";
+import { login as loginApi, register as registerApi, getMe } from "../api";
 
 const AuthContext = createContext(null);
 
@@ -8,9 +8,27 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) setUser(JSON.parse(stored));
-    setLoading(false);
+    const validateToken = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          // Validate token with backend
+          const res = await getMe();
+          setUser(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data));
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("Token validation failed:", err);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    validateToken();
   }, []);
 
   const login = async (email, password) => {
