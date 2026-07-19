@@ -60,7 +60,7 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 
 @app.get("/")
 async def root():
-    return {"message": "Student Management System API "}
+    return {"message": "Student Management System API - v1.0"}
 
 
 @app.get("/items/{item_id}")
