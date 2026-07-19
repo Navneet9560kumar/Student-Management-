@@ -7,7 +7,7 @@ from app.exceptionssss import unicorn_exception_handler, UnicornException
 import os
 from app.api.v1 import students, courses, enrollments, logs, documents
 
-app = FastAPI(title="Student Management System", redirect_slashes=False)
+app = FastAPI(title="Student Management System")
 
 
 
