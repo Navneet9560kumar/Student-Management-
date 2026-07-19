@@ -6,6 +6,7 @@ import {
   updateStudent,
   deleteStudent,
 } from "../api";
+// 🔥 Eye icon import kar liya hai
 import { Plus, Pencil, Trash2, X, FileText, Eye } from "lucide-react";
 
 export default function Students() {
@@ -23,6 +24,7 @@ export default function Students() {
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
 
+  // 🔥 Naya state: Kaunse student ki details open karni hai
   const [expandedId, setExpandedId] = useState(null);
 
   const fetchStudents = async () => {
@@ -55,7 +57,7 @@ export default function Students() {
       name: student.name,
       email: student.email,
       phone: student.phone || "",
-      password: "", // Optional update, keep blank if unchanged
+      password: "",
     });
     setDocType("");
     setFile(null);
@@ -74,6 +76,7 @@ export default function Students() {
         formData.append("phone", form.phone);
         formData.append("password", form.password);
 
+        // Optional Document Upload
         if (docType && file) {
           formData.append("doc_type", docType);
           formData.append("file", file);
@@ -137,9 +140,10 @@ export default function Students() {
                 <tr className="hover:bg-gray-800 transition">
                   <td className="px-4 py-3 text-gray-400">#{s.id}</td>
                   <td className="px-4 py-3 text-white font-medium flex items-center gap-2">
+                    {/* Agar student ka photo_url hai toh dikhao */}
                     {s.photo_url && (
                       <img
-                        src={`https://student-management-2-9fnf.onrender.com${s.photo_url}`}
+                        src={`http://localhost:8000${s.photo_url}`}
                         alt="profile"
                         className="w-6 h-6 rounded-full object-cover"
                       />
@@ -160,6 +164,7 @@ export default function Students() {
                     </span>
                   </td>
                   <td className="px-4 py-3 flex gap-2">
+                    {/* 🔥 View Details Button (Eye Icon) */}
                     <button
                       onClick={() =>
                         setExpandedId(expandedId === s.id ? null : s.id)
@@ -173,25 +178,22 @@ export default function Students() {
                     >
                       <Eye size={14} />
                     </button>
-                    {/* 🔥 Yahan galti thi, ab fix ho gayi hai */}
                     <button
-                      onClick={() => openEdit(s)} 
+                      onClick={() => handleEdit(student)} // Update to call your edit function
                       className="p-1.5 rounded-md bg-indigo-900/30 text-indigo-400 hover:bg-indigo-800/50 transition"
-                      title="Edit Student"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={14} className="" />
                     </button>
                     <button
                       onClick={() => handleDelete(s.id)}
                       className="p-1.5 rounded-lg bg-rose-900 text-rose-400 hover:bg-rose-800 transition"
-                      title="Delete Student"
                     >
                       <Trash2 size={14} />
                     </button>
                   </td>
                 </tr>
 
-                {/* Expanded Details Section */}
+                {/* 🔥 Expanded Details Section (Documents & Enrollments) */}
                 {expandedId === s.id && (
                   <tr className="bg-gray-800/30">
                     <td
@@ -259,6 +261,9 @@ export default function Students() {
                                   </div>
                                   <button
                                     onClick={() =>
+                                      // Apni Render backend link daal do
+
+                                      // window.open(d.file_url.startsWith("http") ? d.file_url : `http://localhost:8000${d.file_url}`, "_blank")
                                       window.open(
                                         d.file_url.startsWith("http")
                                           ? d.file_url
@@ -330,6 +335,7 @@ export default function Students() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               />
 
+              {/* Sirf naya student banate waqt Document upload ka option */}
               {!editing && (
                 <div className="pt-4 mt-4 border-t border-gray-800">
                   <div className="flex items-center gap-2 mb-3 text-gray-400">
@@ -341,7 +347,7 @@ export default function Students() {
                   <div className="space-y-3">
                     <input
                       type="text"
-                      placeholder="Document Type (e.g., ID Card, PAN)"
+                      placeholder="Document Type (e.g., Aadhaar Card, PAN)"
                       value={docType}
                       onChange={(e) => setDocType(e.target.value)}
                       className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
