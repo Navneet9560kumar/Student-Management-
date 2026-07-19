@@ -10,7 +10,7 @@ from app.db.session import get_db
 from app.schemas.user import StudentCreate, StudentResponse,StudentUpdate
 from app.crud import student as crud
 from pydantic import TypeAdapter  #new one
-from app.core.dependencies import require_principal,require_teacher,require_student
+from app.core.dependencies import require_principal,require_teacher,require_student,get_current_user
 from app.models.user import User
 from app.models.document import Document
 from app.Utility.storage import save_file_to_disk
@@ -142,5 +142,15 @@ async def delete_student(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) 
-    
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Get own profile (for any authenticated user, including students)
+@router.get("/me", response_model=StudentResponse)
+async def get_my_profile(
+    current_user: User = Depends(get_current_user)
+):
+    """Get current user's profile if they're a student"""
+    if current_user.role != Role.STUDENT:
+        raise HTTPException(status_code=403, detail="Only students can access this endpoint")
+    return current_user
