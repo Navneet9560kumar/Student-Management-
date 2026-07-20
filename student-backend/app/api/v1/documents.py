@@ -113,13 +113,13 @@ async def get_student_documents(student_id: int, db: AsyncSession = Depends(get_
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Document delete
+
 # Document delete
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: int, 
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)  # 🔥 Yeh add karna zaroori tha!
+    current_user: User = Depends(get_current_user)  
 ):
     try:
         result = await db.execute(
@@ -144,7 +144,7 @@ async def delete_document(
         else:
             print("Warning: File disk par nahi mili, par DB se hata rahe hain.")
 
-        # 👇
+        
         # Document delete karne se pehle Activity Logs se iska connection hata do taaki Foreign Key error na aaye
         await db.execute(
             update(ActivityLog)
