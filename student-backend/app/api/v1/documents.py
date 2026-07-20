@@ -114,8 +114,13 @@ async def get_student_documents(student_id: int, db: AsyncSession = Depends(get_
 
 
 # Document delete
+# Document delete
 @router.delete("/{document_id}")
-async def delete_document(document_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_document(
+    document_id: int, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)  # 🔥 Yeh add karna zaroori tha!
+):
     try:
         result = await db.execute(
             select(Document).where(Document.id == document_id)
@@ -124,13 +129,21 @@ async def delete_document(document_id: int, db: AsyncSession = Depends(get_db)):
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
 
+        # 🔥 Security: Student sirf apna document delete kar paye
+        if current_user.role == "student" and current_user.id != document.student_id:
+            raise HTTPException(status_code=403, detail="You can only delete your own document")
+
         student_id = document.student_id
         doc_type = document.doc_type
 
-        # Disk se delete
-        full_path = f"/app{document.file_url}"
-        if os.path.exists(full_path):
-            os.remove(full_path)
+        #  Disk se delete - Safest relative path
+        # Agar URL "/media/student_3/abc.jpg" hai, toh usko "media/student_3/abc.jpg" banayega
+        file_path = document.file_url.lstrip("/") 
+        
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            print("Warning: File disk par nahi mili, par DB se hata rahe hain.")
 
         await db.delete(document)
         await db.commit()
@@ -141,11 +154,16 @@ async def delete_document(document_id: int, db: AsyncSession = Depends(get_db)):
             action_type="DELETE",
             description=f"Student deleted '{doc_type}'",
             student_id=student_id,
-            document_id=document_id
+            document_id=document_id,
+            performed_by_id=current_user.id,        # Ab kisne delete kiya wo log hoga
+            performed_by_name=current_user.name,
+            performed_by_role=current_user.role
         )
 
         return {"message": "Document deleted successfully"}
+        
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Backend Delete Error: {str(e)}") # Terminal mein error dekhne ke liye
         raise HTTPException(status_code=500, detail=str(e))
