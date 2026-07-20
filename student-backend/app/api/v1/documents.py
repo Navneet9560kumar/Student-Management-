@@ -115,63 +115,66 @@ async def get_student_documents(student_id: int, db: AsyncSession = Depends(get_
 
 
 # Document delete
+# Document delete
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: int, 
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)  
+    current_user: User = Depends(get_current_user)
 ):
     try:
-        result = await db.execute(
-            select(Document).where(Document.id == document_id)
-        )
+        # Sir ki advice: AsyncSession apne aap mein ek transaction (session) hota hai.
+        # Jab tak hum end mein commit nahi karte, DB mein actual change nahi hota.
+
+        result = await db.execute(select(Document).where(Document.id == document_id))
         document = result.scalar_one_or_none()
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        #  Security: Student sirf apna document delete kar paye
+        # Security check
         if current_user.role == "student" and current_user.id != document.student_id:
             raise HTTPException(status_code=403, detail="You can only delete your own document")
 
         student_id = document.student_id
         doc_type = document.doc_type
-
-        # Disk se delete - Safest relative path
         file_path = document.file_url.lstrip("/") 
         
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        else:
-            print("Warning: File disk par nahi mili, par DB se hata rahe hain.")
-
-        
-        # Document delete karne se pehle Activity Logs se iska connection hata do taaki Foreign Key error na aaye
+        # 1. Purane logs se is document ka foreign key reference hatao
         await db.execute(
             update(ActivityLog)
             .where(ActivityLog.document_id == document_id)
             .values(document_id=None)
         )
 
-
+        # 2. Document ko session se delete karo
         await db.delete(document)
-        await db.commit()
+        
+        # Note: Yahan se maine db.commit() hata diya hai taaki sab ek saath commit ho (Session Transaction)
 
-        # Log banao
+        # 3. Naya Log banao
         await create_log(
             db,
             action_type="DELETE",
             description=f"Student deleted '{doc_type}'",
             student_id=student_id,
-            document_id=document_id,
-            performed_by_id=current_user.id,        # Ab kisne delete kiya wo log hoga
+            document_id=None,  # 🔥 MAIN FIX: Yahan None bhejenge kyunki document ud chuka hai!
+            performed_by_id=current_user.id,
             performed_by_name=current_user.name,
             performed_by_role=current_user.role
         )
+        # 💡 Note: Tumhare `create_log` function ke andar already `db.commit()` likha hua hai.
+        # Toh upar ka delete aur yeh log entry, dono ek hi saath (atomic transaction mein) DB mein save ho jayenge.
+
+        # 4. Physical file disk se udao
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        else:
+            print("Warning: File disk par nahi mili.")
 
         return {"message": "Document deleted successfully"}
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Backend Delete Error: {str(e)}") # Terminal mein error dekhne ke liye
+        print(f"Backend Delete Error: {str(e)}") 
         raise HTTPException(status_code=500, detail=str(e))
