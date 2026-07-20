@@ -9,8 +9,8 @@ class Student(Base):
     __tablename__ = "students"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False,  index=True)
     phone: Mapped[Optional[str]] = mapped_column(String(15), nullable=True)
     photo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # ← Boolean nahi, Optional[str]!
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)  # ← nullable=False
