@@ -6,7 +6,7 @@ from app.Utility.storage import save_file_to_disk
 from app.models.document import Document
 from app.models.activity_log import ActivityLog
 from app.schemas.document import DocumentResponse
-from sqlalchemy import select
+from sqlalchemy import select, update
 from app.core.dependencies import require_principal
 from app.models.user import User
 from app.core.dependencies import get_current_user
@@ -129,21 +129,29 @@ async def delete_document(
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        # 🔥 Security: Student sirf apna document delete kar paye
+        #  Security: Student sirf apna document delete kar paye
         if current_user.role == "student" and current_user.id != document.student_id:
             raise HTTPException(status_code=403, detail="You can only delete your own document")
 
         student_id = document.student_id
         doc_type = document.doc_type
 
-        #  Disk se delete - Safest relative path
-        # Agar URL "/media/student_3/abc.jpg" hai, toh usko "media/student_3/abc.jpg" banayega
+        # Disk se delete - Safest relative path
         file_path = document.file_url.lstrip("/") 
         
         if os.path.exists(file_path):
             os.remove(file_path)
         else:
             print("Warning: File disk par nahi mili, par DB se hata rahe hain.")
+
+        # 👇
+        # Document delete karne se pehle Activity Logs se iska connection hata do taaki Foreign Key error na aaye
+        await db.execute(
+            update(ActivityLog)
+            .where(ActivityLog.document_id == document_id)
+            .values(document_id=None)
+        )
+
 
         await db.delete(document)
         await db.commit()
