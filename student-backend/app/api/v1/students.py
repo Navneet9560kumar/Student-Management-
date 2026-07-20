@@ -36,7 +36,7 @@ async def get_all_students(
 
 
 # student ke id ko  get karna 
-@router.get("/{student_id}, response_model=StudentResponse")
+@router.get("/{student_id}", response_model=StudentResponse)
 async def get_student_by_id_(
     student_id:int,
     db:AsyncSession =Depends(get_db),
