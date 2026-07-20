@@ -58,7 +58,7 @@ async def upload_document(
 
 
 
-
+#File Validation
         if file.content_type not in ALLOWED_TYPES:
             raise HTTPException(status_code=400, detail="Only JPG, PNG, PDF allowed!")
 
@@ -72,28 +72,59 @@ async def upload_document(
             file_bytes, file.filename, folder=f"student_{student_id}"
         )
 
-        # DB mein save
-        document = Document(
-            student_id=student_id,
-            doc_type=doc_type,
-            file_url=file_url  # ← file_url use karo, file_path nahi!
-        )
-        db.add(document)
-        await db.commit()
-        await db.refresh(document)
+        #Transaction start
+        async with db.begin():
+            # db masi doc mai add karna 
+            document= Document(
+                student_id=student_id,
+                doc_type=doc_type,
+                file_url=file_url
+            )
+            db.add(document)
 
-        await create_log(
-            db,
+            await db.flush()
+
+            #B log bhi genrate ho 
+           
+            log = ActivityLog(
             action_type="UPLOAD",
             description=f"Student uploaded '{doc_type}'",
             student_id=student_id,
-            document_id=document.id,
+            document_id=document.id,  # Flush ki wajah se ID mil gayi
             performed_by_id=current_user.id,        
             performed_by_name=current_user.name,    
-            performed_by_role=current_user.role
-        )
+            performed_by_role=current_user.role,
+            status="success",
 
-        return document
+        )
+            db.add(log)
+
+
+            await db.refresh(document)
+            return document
+
+        # DB mein save
+        # document = Document(
+        #     student_id=student_id,
+        #     doc_type=doc_type,
+        #     file_url=file_url  # ← file_url use karo, file_path nahi!
+        # )
+        # db.add(document)
+        # await db.commit()
+        # await db.refresh(document)
+
+        # await create_log(
+        #     db,
+        #     action_type="UPLOAD",
+        #     description=f"Student uploaded '{doc_type}'",
+        #     student_id=student_id,
+        #     document_id=document.id,
+        #     performed_by_id=current_user.id,        
+        #     performed_by_name=current_user.name,    
+        #     performed_by_role=current_user.role
+        # )
+
+        # return document
 
     except HTTPException:
         raise
