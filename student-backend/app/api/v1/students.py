@@ -33,6 +33,25 @@ async def get_all_students(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+# student ke id ko  get karna 
+@router.get("/{student_id}, response_model=StudentResponse")
+async def get_student_by_id_(
+    student_id:int,
+    db:AsyncSession =Depends(get_db),
+    current_user: User = Depends(require_teacher)
+):
+    try:
+        student = await crud.get_student_by_id(db, student_id)
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+        return student
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 #only for student
 
 @router.post("/", response_model=StudentResponse)
