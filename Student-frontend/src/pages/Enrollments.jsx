@@ -5,8 +5,8 @@ import { Plus, X, Trash2 } from "lucide-react";
 
 export default function Enrollments() {
   const [enrollments, setEnrollments] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState({}); // Object
+  const [courses, setCourses] = useState({}); // Object
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ student_id: "", course_id: "" });
@@ -21,8 +21,16 @@ export default function Enrollments() {
       ]);
 
       if (e.status === "fulfilled") setEnrollments(e.value.data);
-      if (s.status === "fulfilled") setStudents(s.value.data);
-      if (c.status === "fulfilled") setCourses(c.value.data);
+      if (s.status === "fulfilled") {
+        const sMap = {};
+        s.value.data.forEach(student => { sMap[student.id] = student.name });
+        setStudents(sMap);
+      }
+      if (c.status === "fulfilled") {
+        const cMap = {};
+        c.value.data.forEach(course => { cMap[course.id] = course.name });
+        setCourses(cMap);
+      }
       
     } catch (err) {
       console.error(err);
@@ -35,11 +43,11 @@ export default function Enrollments() {
     fetchAll(); 
   }, []);
 
-  const getStudentName = (id) => students.find((s) => s.id === id)?.name || "Unknown";
-  const getCourseName = (id) => courses.find((c) => c.id === id)?.name || "Unknown";
+  // 🔥 FIX 1: Object se seedha value nikalni hai, .find() hata diya
+  const getStudentName = (id) => students[id] || "Unknown";
+  const getCourseName = (id) => courses[id] || "Unknown";
 
   const handleSubmit = async () => {
-    // 🔥 Naya Logic: Check karo ki pehle se toh enrolled nahi hai
     const isDuplicate = enrollments.some(
       (e) => e.student_id === parseInt(form.student_id) && e.course_id === parseInt(form.course_id)
     );
@@ -61,12 +69,11 @@ export default function Enrollments() {
     }
   };
 
-  // 🔥 Naya Logic: Delete karne ka function
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this enrollment?")) return;
     try {
       await deleteEnrollment(id);
-      fetchAll(); // Delete hone ke baad table refresh karega
+      fetchAll(); 
     } catch (err) {
       console.error(err);
       alert("Failed to delete. Make sure deleteEnrollment exists in your api.js");
@@ -101,7 +108,7 @@ export default function Enrollments() {
               <th className="px-4 py-3 text-left">Course</th>
               <th className="px-4 py-3 text-left">Status</th>
               <th className="px-4 py-3 text-left">Enrolled At</th>
-              <th className="px-4 py-3 text-left">Actions</th> {/* 🔥 Naya Action column */}
+              <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -119,7 +126,6 @@ export default function Enrollments() {
                   {new Date(e.enrolled_at).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3">
-                  {/* 🔥 Naya Delete Button */}
                   <button
                     onClick={() => handleDelete(e.id)}
                     className="p-1.5 rounded-lg bg-rose-900 text-rose-400 hover:bg-rose-800 transition"
@@ -154,18 +160,21 @@ export default function Enrollments() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               >
                 <option value="">Select Student</option>
-                {students.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+                {/* 🔥 FIX 2: Object par loop chalane ke liye Object.entries() lagaya hai */}
+                {Object.entries(students).map(([id, name]) => (
+                  <option key={id} value={id}>{name}</option>
                 ))}
               </select>
+              
               <select
                 value={form.course_id}
                 onChange={(e) => setForm({ ...form, course_id: e.target.value })}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
               >
                 <option value="">Select Course</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {/* 🔥 FIX 3: Same yahan bhi Object.entries() lagaya hai */}
+                {Object.entries(courses).map(([id, name]) => (
+                  <option key={id} value={id}>{name}</option>
                 ))}
               </select>
             </div>

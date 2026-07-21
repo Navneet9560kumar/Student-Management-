@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Suspense, lazy } from "react";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
@@ -26,7 +33,13 @@ function ProtectedLayout() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <Navbar />
         <main className="flex-1 overflow-y-auto p-6">
-          <Outlet /> {/* Saare child routes yahan render honge */}
+          <Suspense
+            fallback={
+              <div className="text-gray-400 animate-pulse">Loading Page...</div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
