@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Form,File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi_pagination import Page, paginate  #new onw
+
 from sqlalchemy.exc import IntegrityError
 from typing import Optional
 from pydantic import EmailStr
