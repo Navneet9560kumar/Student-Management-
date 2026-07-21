@@ -13,6 +13,6 @@ class Student(Base):
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False,  index=True)
     phone: Mapped[Optional[str]] = mapped_column(String(15), nullable=True)
     photo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # ← Boolean nahi, Optional[str]!
-    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)  # ← nullable=False
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False) 
     created_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now()) 
