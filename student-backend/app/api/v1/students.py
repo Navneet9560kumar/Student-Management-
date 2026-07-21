@@ -24,39 +24,39 @@ ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg", "application/pdf"]
 
 
 # GET All Students (Principal + Teacher)
-# @router.get("/", response_model=list[StudentResponse])
-# async def get_all_students(
-#     db: AsyncSession = Depends(get_db),
-#     current_user: User = Depends(require_teacher)
-# ):
-   
-#     try: 
-#         return await crud.get_all_students(db)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/", response_model=list[StudentResponse])  # new wala hia ye 
+@router.get("/", response_model=list[StudentResponse])
 async def get_all_students(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_teacher)
 ):
-    print("\n--- 🚀 API HIT HUI ---")
-    start_time = time.time()
-
+   
     try: 
-        # 1. Database se data lao
-        db_start = time.time()
-        students = await crud.get_all_students(db)
-        print(f"⏱️ DB Query Time: {time.time() - db_start:.4f} seconds")
-        
-        # 2. Total time check
-        print(f"⏱️ Total Time Inside API: {time.time() - start_time:.4f} seconds")
-        print("--- ✅ SENDING RESPONSE ---\n")
-        
-        return students
-        
+        return await crud.get_all_students(db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# @router.get("/", response_model=list[StudentResponse])  # new wala hia ye 
+# async def get_all_students(
+#     db: AsyncSession = Depends(get_db),
+#     current_user: User = Depends(require_teacher)
+# ):
+#     print("\n--- 🚀 API HIT HUI ---")
+#     start_time = time.time()
+
+#     try: 
+#         # 1. Database se data lao
+#         db_start = time.time()
+#         students = await crud.get_all_students(db)
+#         print(f"⏱️ DB Query Time: {time.time() - db_start:.4f} seconds")
+        
+#         # 2. Total time check
+#         print(f"⏱️ Total Time Inside API: {time.time() - start_time:.4f} seconds")
+#         print("--- ✅ SENDING RESPONSE ---\n")
+        
+#         return students
+        
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 # student ke id ko  get karna 
 @router.get("/{student_id}", response_model=StudentResponse)
